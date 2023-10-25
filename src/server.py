@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: MIT
 
 """
-    APSVIZ settings server.
+    iRODS-K8s settings server.
 """
 
 import json
@@ -30,7 +30,7 @@ from src.common.bearer import JWTBearer
 app_version = os.getenv('APP_VERSION', 'Version number not set')
 
 # declare the FastAPI details
-APP = FastAPI(title='APSVIZ Settings', version=app_version)
+APP = FastAPI(title='iRODS-K8s Settings', version=app_version)
 
 # declare app access details
 APP.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
@@ -39,11 +39,11 @@ APP.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, 
 log_level, log_path = LoggingUtil.prep_for_logging()
 
 # create a logger
-logger = LoggingUtil.init_logging("APSVIZ.Settings", level=log_level, line_format='medium', log_file_path=log_path)
+logger = LoggingUtil.init_logging("iRODS.Settings", level=log_level, line_format='medium', log_file_path=log_path)
 
 # specify the DB to get a connection
 # note the extra comma makes this single item a singleton tuple
-db_names: tuple = ('asgs',)
+db_names: tuple = ('irods-k8s',)
 
 # create a DB connection object
 db_info: PGImplementation = PGImplementation(db_names, _logger=logger)
@@ -71,12 +71,11 @@ async def get_all_sv_component_versions() -> json:
 
     # get the web service endpoints and bearer token headers
     endpoints: list = [
-        [os.getenv('AWS_SETTINGS_URL'), {'Content-Type': 'application/json', 'Authorization': f'Bearer {os.environ.get("AWS_BEARER_TOKEN")}'}],
         [os.getenv('PRD_SETTINGS_URL'), {'Content-Type': 'application/json', 'Authorization': f'Bearer {os.environ.get("PRD_BEARER_TOKEN")}'}],
         [os.getenv('DEV_SETTINGS_URL'), {'Content-Type': 'application/json', 'Authorization': f'Bearer {os.environ.get("DEV_BEARER_TOKEN")}'}]]
 
     # create a list of target namespaces
-    namespaces: list = ['AWS', 'PROD', 'DEV']
+    namespaces: list = ['PROD', 'DEV']
 
     # start collecting data
     try:
@@ -229,17 +228,6 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName) -> json:
     """
     Resets the job process order to the default for the workflow selected.
 
-    The normal sequence of ASGS jobs are:
-    staging -> adcirc to COGs -> adcirc Kalpana to COGs -> ast run harvester -> adcirc Time to COGs -> obs-mod-ast -> compute COGs geo-tiffs ->
-    load geoserver -> final staging -> complete
-
-    The normal sequence of ECFLOW jobs are:
-    staging -> adcirc to COGs -> adcirc Kalpana to COGs -> adcirc Time to COGs -> obs-mod-ast -> compute COGs geo-tiffs -> load geoserver ->
-    collaborator data sync -> final staging -> complete
-
-    The normal sequence of HECRAS jobs are
-    load geoserver from S3 -> complete
-
     """
 
     # init the returned html status code
@@ -365,68 +353,6 @@ async def get_the_log_file(log_file: str, search_backups: bool = False):
     return JSONResponse(content={'Response': 'Error - You must select a log file.'}, status_code=404, media_type="application/json")
 
 
-@APP.get("/get_run_properties", dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def get_the_run_properties(instance_id: int, uid: str):
-    """
-    Gets the run properties for the run specified.
-
-    """
-    # init the returned html status code
-    status_code = 200
-
-    try:
-        # try to make the call for records
-        ret_val = db_info.get_run_props(instance_id, uid)
-
-    except Exception:
-        # return a failure message
-        ret_val = f'Exception detected trying to get the run properties for {instance_id}-{uid}.'
-
-        # log the exception
-        logger.exception(ret_val)
-
-        # set the status to a server error
-        status_code = 500
-
-    # return to the caller
-    return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
-
-
-@APP.get("/get_run_list", dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def get_the_run_list():
-    """
-    Gets the run information for the last 100 runs.
-
-    """
-
-    # init the returned html status code
-    status_code = 200
-
-    try:
-        # get the run records
-        ret_val = db_info.get_run_list()
-
-        # add a final status to each record
-        for item in ret_val:
-            if item['status'].find('Error') > -1:
-                item['final_status'] = 'Error'
-            else:
-                item['final_status'] = 'Success'
-
-    except Exception:
-        # return a failure message
-        ret_val = 'Exception detected trying to gather run data'
-
-        # log the exception
-        logger.exception(ret_val)
-
-        # set the status to a server error
-        status_code = 500
-
-    # return to the caller
-    return JSONResponse(content={'Response': ret_val}, status_code=status_code, media_type="application/json")
-
-
 # sets the run.properties run status to 'new' for a job
 @APP.put('/instance_id/{instance_id}/uid/{uid}/status/{status}', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def set_the_run_status(instance_id: int, uid: str, status: RunStatus = RunStatus('new')):
@@ -549,16 +475,6 @@ async def set_the_supervisor_job_order(workflow_type_name: WorkflowTypeName, job
     Modifies the supervisor component's linked list of jobs. Select the workflow type, then select the job process name and the next job
     process name.
 
-    The normal sequence of ASGS jobs are:
-    staging -> adcirc to COGs -> adcirc Kalpana to COGs -> ast run harvester -> adcirc Time to COGs -> obs-mod-ast -> compute COGs geo-tiffs ->
-    load geoserver -> final staging -> complete
-
-    The normal sequence of ECFLOW jobs are:
-    staging -> adcirc to COGs -> adcirc Kalpana to COGs -> adcirc Time to COGs -> obs-mod-ast -> compute COGs geo-tiffs -> load geoserver ->
-    collaborator data sync -> final staging -> complete
-
-    The normal sequence of HECRAS jobs are
-    load geoserver from S3 -> complete
     """
     # init the returned html status code
     status_code = 200

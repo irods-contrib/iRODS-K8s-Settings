@@ -86,7 +86,7 @@ def test_access():
     auth_header: dict = {'Content-Type': 'application/json', 'Authorization': f'Bearer {token["access_token"]}'}
 
     # execute the post
-    ret_val = requests.get('http://localhost:4000/get_job_order/ASGS', headers=auth_header, timeout=10)
+    ret_val = requests.get('http://localhost:4000/get_job_order/iRODS', headers=auth_header, timeout=10)
 
     # was the call unsuccessful
     assert ret_val.status_code == 200
