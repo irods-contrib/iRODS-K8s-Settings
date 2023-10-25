@@ -57,7 +57,7 @@ class PGImplementation(PGUtilsMultiConnect):
         sql: str = 'SELECT public.get_supervisor_job_defs_json()'
 
         # get the data
-        ret_val = self.exec_sql('irods-k8s', sql)
+        ret_val = self.exec_sql('irods_k8s', sql)
 
         # return the data
         return ret_val
@@ -72,7 +72,7 @@ class PGImplementation(PGUtilsMultiConnect):
         sql: str = f"SELECT public.get_supervisor_job_order('{workflow_type}')"
 
         # get the data
-        ret_val = self.exec_sql('irods-k8s', sql)
+        ret_val = self.exec_sql('irods_k8s', sql)
 
         # return the data
         return ret_val
@@ -85,7 +85,13 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # declare an array of the job id and next job type id in sequence
-        workflow_job_types: dict = {}
+        workflow_job_types: dict = {
+            'CORE': ['1, 2', '2, 3'],
+            'FEDERATION': ['1, 2', '2, 3'],
+            'PLUGIN': ['1, 2', '2, 3'],
+            'TOPOLOGY': ['1, 2', '2, 3'],
+            'UNIT': ['1, 2', '2, 3']
+            }
 
         # init the failed flag
         failed: bool = False
@@ -96,7 +102,7 @@ class PGImplementation(PGUtilsMultiConnect):
             sql = f"SELECT public.update_next_job_for_job({item}, '{workflow_type_name}')"
 
             # and execute it
-            ret_val = self.exec_sql('irods-k8s', sql)
+            ret_val = self.exec_sql('irods_k8s', sql)
 
             # anything other than a list returned is an error
             if ret_val != 0:
@@ -105,7 +111,7 @@ class PGImplementation(PGUtilsMultiConnect):
 
         # if there were no errors, commit the updates
         if not failed:
-            self.commit('irods-k8s')
+            self.commit('irods_k8s')
 
         # return to the caller
         return failed
@@ -121,7 +127,7 @@ class PGImplementation(PGUtilsMultiConnect):
         sql: str = 'SELECT public.get_supervisor_run_list()'
 
         # return the data
-        return self.exec_sql('irods-k8s', sql)
+        return self.exec_sql('irods_k8s', sql)
 
     def update_next_job_for_job(self, job_name: str, next_process_id: int, workflow_type_name: str):
         """
@@ -137,11 +143,11 @@ class PGImplementation(PGUtilsMultiConnect):
         sql = f"SELECT public.update_next_job_for_job('{job_name}', {next_process_id}, '{workflow_type_name}')"
 
         # run the SQL
-        ret_val = self.exec_sql('irods-k8s', sql)
+        ret_val = self.exec_sql('irods_k8s', sql)
 
         # if there were no errors, commit the updates
         if ret_val > -1:
-            self.commit('irods-k8s')
+            self.commit('irods_k8s')
 
     def update_job_image_version(self, job_name: str, image: str):
         """
@@ -156,11 +162,11 @@ class PGImplementation(PGUtilsMultiConnect):
         sql = f"SELECT public.update_job_image('{job_name}', '{image}')"
 
         # run the SQL
-        ret_val = self.exec_sql('irods-k8s', sql)
+        ret_val = self.exec_sql('irods_k8s', sql)
 
         # if there were no errors, commit the updates
         if ret_val > -1:
-            self.commit('irods-k8s')
+            self.commit('irods_k8s')
 
     def update_run_status(self, instance_id: int, uid: str, status: str):
         """
@@ -177,11 +183,11 @@ class PGImplementation(PGUtilsMultiConnect):
         sql = f"SELECT public.set_config_item({instance_id}, '{uid}', 'supervisor_job_status', '{status}')"
 
         # run the SQL
-        ret_val = self.exec_sql('irods-k8s', sql)
+        ret_val = self.exec_sql('irods_k8s', sql)
 
         # if there were no errors, commit the updates
         if ret_val > -1:
-            self.commit('irods-k8s')
+            self.commit('irods_k8s')
 
     def get_run_props(self, instance_id: int, uid: str):
         """
@@ -193,7 +199,7 @@ class PGImplementation(PGUtilsMultiConnect):
         sql: str = f"SELECT * FROM public.get_run_prop_items_json({instance_id}, '{uid}')"
 
         # get the data
-        ret_val = self.exec_sql('irods-k8s', sql)
+        ret_val = self.exec_sql('irods_k8s', sql)
 
         # check the result
         if ret_val == -1:

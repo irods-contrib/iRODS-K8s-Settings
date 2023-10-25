@@ -38,7 +38,7 @@ def test_sign_jwt():
     assert token and 'access_token' in token
 
 
-@pytest.mark.skip(reason="Local test only")
+# @pytest.mark.skip(reason="Local test only")
 def test_decode_jwt():
     """
     tests the decode and validation of a JWT token

@@ -33,7 +33,7 @@ class GenUtils:
     job_type_name_to_id: dict = {}
 
     @staticmethod
-    def get_log_file_list(filter_param: str = '', search_backups: bool = False):
+    def get_log_file_list(filter_param: str = ''):
         """
         Gets all the log file path/names
 
@@ -46,12 +46,7 @@ class GenUtils:
         counter = 0
 
         # get the log file path
-        if search_backups:
-            # get the path to the archive directory
-            log_file_path = os.getenv('LOG_BACKUP_PATH', os.path.dirname(__file__))
-        else:
-            # init the log file path
-            log_file_path: str = LoggingUtil.get_log_path()
+        log_file_path: str = LoggingUtil.get_log_path()
 
         # if a filter param was declared make it a wildcard
         if filter_param:
@@ -93,6 +88,10 @@ class WorkflowTypeName(str, Enum):
     Class enums for the supervisor workflow names
     """
     CORE = 'CORE'
+    FEDERATION = 'FEDERATION'
+    PLUGIN = 'PLUGIN'
+    TOPOLOGY = 'TOPOLOGY'
+    UNIT = 'UNIT'
 
 
 class JobTypeName(str, Enum):
@@ -100,6 +99,10 @@ class JobTypeName(str, Enum):
     Class enum for k8s job type names
     """
     CORE_JOB = 'core-job'
+    FEDERATION_JOB = 'federation-job'
+    PLUGIN_JOB = 'plugin-job'
+    TOPOLOGY_JOB = 'topology-job'
+    UNIT_JOB = 'unit-job'
 
 
 class NextJobTypeName(str, Enum):
@@ -107,6 +110,10 @@ class NextJobTypeName(str, Enum):
     Class enum for k8s job type names
     """
     CORE_JOB = 'core-job'
+    FEDERATION_JOB = 'federation-job'
+    PLUGIN_JOB = 'plugin-job'
+    TOPOLOGY_JOB = 'topology-job'
+    UNIT_JOB = 'unit-job'
 
 
 class RunStatus(str, Enum):
