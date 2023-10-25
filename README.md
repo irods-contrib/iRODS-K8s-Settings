@@ -8,11 +8,11 @@ SPDX-License-Identifier: MIT
 -->
 ![image not found](renci-logo.png "RENCI")
 
-# APSViz Settings
+# iRODS K8s Settings
 A Web application/services to view/modify the [iRODS-K8s Supervisor](https://github.com/irods-contrib/iRODS-K8s-Supervisor) run-time configuration as well as to monitor operational state.
 
 #### Licenses...
-[![MIT License](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/RENCI/APSVIZ-Settings/tree/master/LICENSE)
+[![MIT License](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/irods-contrib/iRODS-K8s-Settings/tree/master/LICENSE)
 [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/)
 [![RENCI License](https://img.shields.io/badge/License-RENCI-blue.svg)](https://www.renci.org/)
 #### Components and versions...
