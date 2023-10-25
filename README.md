@@ -9,25 +9,25 @@ SPDX-License-Identifier: MIT
 ![image not found](renci-logo.png "RENCI")
 
 # APSViz Settings
-A Web application/services to view/modify the [APSViz-Supervisor](https://github.com/RENCI/APSVIZ-Supervisor) run-time configuration as well as to monitor operational state.
+A Web application/services to view/modify the [iRODS-K8s Supervisor](https://github.com/irods-contrib/iRODS-K8s-Supervisor) run-time configuration as well as to monitor operational state.
 
 #### Licenses...
 [![MIT License](https://img.shields.io/badge/License-MIT-orange.svg)](https://github.com/RENCI/APSVIZ-Settings/tree/master/LICENSE)
 [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/)
 [![RENCI License](https://img.shields.io/badge/License-RENCI-blue.svg)](https://www.renci.org/)
 #### Components and versions...
-[![Python](https://img.shields.io/badge/Python-3.11.5-orange)](https://github.com/python/cpython)
-[![Linting Pylint](https://img.shields.io/badge/Pylint-%203.0.0-yellow)](https://github.com/PyCQA/pylint)
-[![Pytest](https://img.shields.io/badge/Pytest-%207.4.2-blue)](https://github.com/pytest-dev/pytest)
+[![Python](https://img.shields.io/badge/Python-3.11.6-orange)](https://github.com/python/cpython)
+[![Linting Pylint](https://img.shields.io/badge/Pylint-%203.0.2-yellow)](https://github.com/PyCQA/pylint)
+[![Pytest](https://img.shields.io/badge/Pytest-%207.4.3-blue)](https://github.com/pytest-dev/pytest)
 #### Build status...
-[![PyLint the codebase](https://github.com/RENCI/APSVIZ-Settings/actions/workflows/pylint.yml/badge.svg)](https://github.com/RENCI/APSVIZ-Settings/actions/workflows/pylint.yml)
-[![Build and push the Docker image](https://github.com/RENCI/APSVIZ-Settings/actions/workflows/image-push.yml/badge.svg)](https://github.com/RENCI/APSVIZ-Settings/actions/workflows/image-push.yml)
+[![PyLint the codebase](https://github.com/irods-contrib/iRODS-K8s-Settings/actions/workflows/pylint.yml/badge.svg)](https://github.com/irods-contrib/iRODS-K8s-Settings/actions/workflows/pylint.yml)
+[![Build and push the Docker image](https://github.com/irods-contrib/iRODS-K8s-Settings/actions/workflows/image-push.yml/badge.svg)](https://github.com/irods-contrib/iRODS-K8s-Settings/actions/workflows/image-push.yml)
 
 ## Description
-This product utilizes a FASTAPI interface to allow access to the [APSViz-Supervisor](https://github.com/RENCI/APSVIZ-Supervisor) configuration settings and status.
+This product utilizes a FASTAPI interface to allow access to the [iRODS-K8s Supervisor](https://github.com/irods-contrib/iRODS-K8s-Supervisor) configuration settings and status.
 
 There are GitHub actions to maintain code quality in this repo:
  - Pylint (minimum score of 10/10 to pass),
  - Build/publish a Docker image.
 
-Helm/k8s charts for this product are available at: [APSViz-Helm](https://github.com/RENCI/apsviz-helm/tree/main/supervisor-settings).
+Helm/k8s charts for this product are available at: [iRODS K8s Helm](https://github.com/irods/irods_k8s/tree/main/helm/irods-supervisor-settings).
