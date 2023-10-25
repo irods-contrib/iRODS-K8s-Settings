@@ -60,10 +60,9 @@ async def get_sv_component_versions() -> json:
 
     :return:
     """
+
     # init the returned html status code
     status_code = 200
-
-    # init the return
     ret_val: dict = {}
 
     try:
@@ -92,13 +91,16 @@ async def get_sv_component_versions() -> json:
 
     except Exception:
         # return a failure message
-        ret_val = {'Error': 'Exception detected trying to get the component versions.'}
+        msg: str = 'Exception detected trying to get the component versions.'
 
         # log the exception
-        logger.exception(ret_val)
+        logger.exception(msg)
 
         # set the status to a server error
         status_code = 500
+
+        # set the error message in the return
+        ret_val = {'Error': msg}
 
     # return to the caller
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
@@ -113,6 +115,7 @@ async def display_job_order(workflow_type_name: WorkflowTypeName) -> json:
 
     # init the returned html status code
     status_code = 200
+    ret_val: dict = {}
 
     try:
         # try to make the call for records
@@ -124,13 +127,16 @@ async def display_job_order(workflow_type_name: WorkflowTypeName) -> json:
 
     except Exception:
         # return a failure message
-        ret_val = f'Exception detected trying to get the {WorkflowTypeName(workflow_type_name).value} job order.'
+        msg: str = f'Exception detected trying to get the {WorkflowTypeName(workflow_type_name).value} job order.'
 
         # log the exception
-        logger.exception(ret_val)
+        logger.exception(msg)
 
         # set the status to a server error
         status_code = 500
+
+        # set the error message in the return
+        ret_val = {'Error': msg}
 
     # return to the caller
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
@@ -145,7 +151,7 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName) -> json:
 
     # init the returned html status code
     status_code = 200
-    ret_val = ''
+    ret_val: dict = {}
 
     try:
         # is this a legit workflow type
@@ -154,27 +160,30 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName) -> json:
             ret_val = db_info_no_auto_commit.reset_job_order(WorkflowTypeName(workflow_type_name).value)
 
             # check the return value for failure, failed == true
-            if ret_val:
-                raise Exception(f'Failure trying to reset the {WorkflowTypeName(workflow_type_name).value} job order. Error: {ret_val}')
+            if not ret_val:
+                # get the new job order
+                job_order = db_info.get_job_order(WorkflowTypeName(workflow_type_name).value)
 
-            # get the new job order
-            job_order = db_info.get_job_order(WorkflowTypeName(workflow_type_name).value)
-
-            # return a success message with the new job order
-            ret_val = [{'message': f'The job order for the {WorkflowTypeName(workflow_type_name).value} workflow has been reset to the default.'},
-                       {'job_order': job_order}]
+                # return a success message with the new job order
+                ret_val = [{'message': f'The job order for the {WorkflowTypeName(workflow_type_name).value} workflow has been reset to the default.'},
+                           {'job_order': job_order}]
+            else:
+                ret_val = {'Error': 'Error resetting job order.'}
         else:
             ret_val = {'Error': f'Workflow type {workflow_type_name} not found.'}
 
     except Exception:
         # return a failure message
-        ret_val = {'Error': f'Exception detected trying to reset the {workflow_type_name} job order.'}
+        msg: str = f'Exception detected trying to reset the {workflow_type_name} job order.'
 
         # log the exception
-        logger.exception(ret_val)
+        logger.exception(msg)
 
         # set the status to a server error
         status_code = 500
+
+        # set the error message in the return
+        ret_val = {'Error': msg}
 
     # return to the caller
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
@@ -186,10 +195,8 @@ async def display_job_definitions() -> json:
     Displays the job definitions for all workflows. Note that this list is in alphabetical order (not in job execute order).
 
     """
-    # init the returned html status code
+    # init the returned html status code and return value
     status_code = 200
-
-    # init the return
     ret_val: dict = {}
 
     try:
@@ -219,13 +226,16 @@ async def display_job_definitions() -> json:
 
     except Exception:
         # return a failure message
-        ret_val = {'Error': 'Exception detected trying to get the job definitions'}
+        msg: str = 'Exception detected trying to get the job definitions'
 
         # log the exception
-        logger.exception(ret_val)
+        logger.exception(msg)
 
         # set the status to a server error
         status_code = 500
+
+        # set the error message in the return
+        ret_val = {'Error': msg}
 
     # return to the caller
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
@@ -239,8 +249,7 @@ async def get_the_log_file_list(filter_param: str = ''):
     """
 
     # return the list to the caller in JSON format
-    return JSONResponse(content={'Response': GenUtils.get_log_file_list(filter_param)}, status_code=200,
-                        media_type="application/json")
+    return JSONResponse(content={'Response': GenUtils.get_log_file_list(filter_param)}, status_code=200, media_type="application/json")
 
 
 @APP.get("/get_log_file/", dependencies=[Depends(JWTBearer(security))], response_model=None)
@@ -280,8 +289,9 @@ async def set_the_run_status(run_id: int, status: RunStatus = RunStatus('new')):
     ex: run_id: 3057, status: do not rerun
 
     """
-    # init the returned html status code
+    # init the returned html status code and return value
     status_code = 200
+    ret_val: str = ''
 
     # is this a valid instance id
     if run_id > 0:
@@ -374,3 +384,25 @@ async def set_the_supervisor_job_order(workflow_type_name: WorkflowTypeName, job
 
     # return to the caller
     return JSONResponse(content={'Response': ret_val}, status_code=status_code, media_type="application/json")
+
+
+# sets the run.properties run status to 'new' for a job
+@APP.put('/run_data/{run_data}', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
+async def submit_run_data_to_queue(run_data: str, status: RunStatus = RunStatus('new')):
+    """
+    Submits the run data to the queue.
+
+    """
+    # init the returned html status code and return value
+    status_code = 200
+    ret_val: dict = {}
+
+    try:
+        # convert the string to json
+        ret_val = json.loads(run_data)
+
+    except Exception:
+        ret_val = {'Error': 'Exception detected'}
+
+    # return to the caller
+    return JSONResponse(content={'Not implemented yet': ret_val}, status_code=status_code, media_type="application/json")
