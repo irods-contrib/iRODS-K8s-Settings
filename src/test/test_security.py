@@ -18,7 +18,7 @@ import pytest
 from src.common.security import Security
 
 
-# @pytest.mark.skip(reason="Local test only")
+@pytest.mark.skip(reason="Local test only")
 def test_sign_jwt():
     """
     tests the creation of a JWT token

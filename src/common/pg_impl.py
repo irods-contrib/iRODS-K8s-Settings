@@ -168,19 +168,18 @@ class PGImplementation(PGUtilsMultiConnect):
         if ret_val > -1:
             self.commit('irods_k8s')
 
-    def update_run_status(self, instance_id: int, uid: str, status: str):
+    def update_run_status(self, run_id: int, status: str):
         """
         Updates the run properties run status to 'new'.
 
-        :param instance_id:
-        :param uid:
+        :param run_id:
 
         :param status
         :return:
         """
 
         # create the sql
-        sql = f"SELECT public.set_config_item({instance_id}, '{uid}', 'supervisor_job_status', '{status}')"
+        sql = f"SELECT public.set_config_item({run_id}, 'supervisor_job_status', '{status}')"
 
         # run the SQL
         ret_val = self.exec_sql('irods_k8s', sql)
@@ -189,14 +188,14 @@ class PGImplementation(PGUtilsMultiConnect):
         if ret_val > -1:
             self.commit('irods_k8s')
 
-    def get_run_props(self, instance_id: int, uid: str):
+    def get_run_props(self, run_id: int):
         """
         gets the run properties for a run
 
         :return:
         """
         # create the sql
-        sql: str = f"SELECT * FROM public.get_run_prop_items_json({instance_id}, '{uid}')"
+        sql: str = f"SELECT * FROM public.get_run_prop_items_json({run_id})"
 
         # get the data
         ret_val = self.exec_sql('irods_k8s', sql)

@@ -11,10 +11,8 @@
 
 import json
 import os
-import re
 
 from pathlib import Path
-import requests
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,7 +20,7 @@ from fastapi.responses import JSONResponse, FileResponse
 
 from src.common.logger import LoggingUtil
 from src.common.pg_impl import PGImplementation
-from src.common.utils import GenUtils, WorkflowTypeName, ImageRepo, RunStatus, JobTypeName, NextJobTypeName
+from src.common.utils import GenUtils, WorkflowTypeName, RunStatus, JobTypeName, NextJobTypeName
 from src.common.security import Security
 from src.common.bearer import JWTBearer
 
