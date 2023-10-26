@@ -41,7 +41,7 @@ logger = LoggingUtil.init_logging("iRODS.Settings", level=log_level, line_format
 
 # specify the DB to get a connection
 # note the extra comma makes this single item a singleton tuple
-db_names: tuple = ('irods_k8s',)
+db_names: tuple = ('irods-k8s',)
 
 # create a DB connection object
 db_info: PGImplementation = PGImplementation(db_names, _logger=logger)
