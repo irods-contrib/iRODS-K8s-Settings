@@ -112,14 +112,12 @@ class PGUtilsMultiConnect:
         # insure the env parameter prefix is uppercase
         db_name: str = db_name.upper().replace('-', '_')
 
-        self.logger.info(f'port: {db_name}_DB_PORT')
-
         # get configuration params from the env params
         user: str = os.environ.get(f'{db_name}_DB_USERNAME')
         password: str = os.environ.get(f'{db_name}_DB_PASSWORD')
         dbname: str = os.environ.get(f'{db_name}_DB_DATABASE')
         host: str = os.environ.get(f'{db_name}_DB_HOST')
-        port: int = int(os.environ.get(f'{db_name}_DB_PORT', 5432))
+        port: int = int(os.environ.get(f'{db_name}_DB_PORT'))
 
         # create a connection string
         connection_str: str = f"host={host} port={port} dbname={dbname} user={user} password={password}"
