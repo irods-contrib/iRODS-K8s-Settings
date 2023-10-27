@@ -11,6 +11,7 @@
 
 import json
 import os
+import typing
 
 from pathlib import Path
 
@@ -62,7 +63,7 @@ async def get_sv_component_versions() -> json:
     """
 
     # init the returned html status code
-    status_code = 200
+    status_code: int = 200
     ret_val: dict = {}
 
     try:
@@ -114,7 +115,7 @@ async def display_job_order(workflow_type_name: WorkflowTypeName) -> json:
     """
 
     # init the returned html status code
-    status_code = 200
+    status_code: int = 200
     ret_val: dict = {}
 
     try:
@@ -150,14 +151,14 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName) -> json:
     """
 
     # init the returned html status code
-    status_code = 200
-    ret_val: dict = {}
+    status_code: int = 200
+    ret_val: typing.Any = None
 
     try:
         # is this a legit workflow type
         if workflow_type_name in WorkflowTypeName:
             # try to make the call for records
-            ret_val = db_info_no_auto_commit.reset_job_order(WorkflowTypeName(workflow_type_name).value)
+            reset_val: bool = db_info_no_auto_commit.reset_job_order(WorkflowTypeName(workflow_type_name).value)
 
             # check the return value for failure, failed == true
             if not ret_val:
@@ -165,12 +166,13 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName) -> json:
                 job_order = db_info.get_job_order(WorkflowTypeName(workflow_type_name).value)
 
                 # return a success message with the new job order
-                ret_val = [{'message': f'The job order for the {WorkflowTypeName(workflow_type_name).value} workflow has been reset to the default.'},
+                ret_val: list = [{'message': f'The job order for the {WorkflowTypeName(workflow_type_name).value} workflow has been reset to the '
+                                        f'default.'},
                            {'job_order': job_order}]
             else:
-                ret_val = {'Error': 'Error resetting job order.'}
+                ret_val: dict = {'Error': 'Error resetting job order.'}
         else:
-            ret_val = {'Error': f'Workflow type {workflow_type_name} not found.'}
+            ret_val: dict = {'Error': f'Workflow type {workflow_type_name} not found.'}
 
     except Exception:
         # return a failure message
@@ -196,7 +198,7 @@ async def display_job_definitions() -> json:
 
     """
     # init the returned html status code and return value
-    status_code = 200
+    status_code: int = 200
     ret_val: dict = {}
 
     try:
@@ -290,7 +292,7 @@ async def set_the_run_status(run_id: int, status: RunStatus = RunStatus('new')):
 
     """
     # init the returned html status code and return value
-    status_code = 200
+    status_code: int = 200
     ret_val: str = ''
 
     # is this a valid instance id
@@ -334,7 +336,7 @@ async def set_the_supervisor_job_order(workflow_type_name: WorkflowTypeName, job
 
     """
     # init the returned html status code
-    status_code = 200
+    status_code: int = 200
 
     try:
         # check for a recursive situation
@@ -394,7 +396,7 @@ async def submit_run_data_to_queue(run_data: str, status: RunStatus = RunStatus(
 
     """
     # init the returned html status code and return value
-    status_code = 200
+    status_code: int = 200
     ret_val: dict = {}
 
     try:
