@@ -101,8 +101,8 @@ class PGUtilsMultiConnect:
         except Exception:
             self.logger.warning('Error detected closing the %s DB connection.', db_name)
 
-    #@staticmethod
-    def get_conn_config(self, db_name: str) -> str:
+    @staticmethod
+    def get_conn_config(db_name: str) -> str:
         """
         Creates a dict of the DB connection configuration.
 
