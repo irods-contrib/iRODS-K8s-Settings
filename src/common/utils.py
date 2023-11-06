@@ -98,22 +98,24 @@ class JobTypeName(str, Enum):
     """
     Class enum for k8s job type names
     """
-    CORE_JOB = 'core-job'
-    FEDERATION_JOB = 'federation-job'
-    PLUGIN_JOB = 'plugin-job'
-    TOPOLOGY_JOB = 'topology-job'
-    UNIT_JOB = 'unit-job'
+    CORE_STAGING_JOB = 'core-staging-job'
+    CORE_DATABASE_JOB = 'core-database-job'
+    CORE_PROVIDER_JOB = 'core-provider-job'
+    CORE_CONSUMER_JOB = 'core-consumer-job'
+    CORE_FORENSICS_JOB = 'core-forensics-job'
+    CORE_FINAL_STAGING_JOB = 'core-final-staging-job'
 
 
 class NextJobTypeName(str, Enum):
     """
     Class enum for k8s job type names
     """
-    CORE_JOB = 'core-job'
-    FEDERATION_JOB = 'federation-job'
-    PLUGIN_JOB = 'plugin-job'
-    TOPOLOGY_JOB = 'topology-job'
-    UNIT_JOB = 'unit-job'
+    CORE_STAGING_JOB = 'core-staging-job'
+    CORE_DATABASE_JOB = 'core-database-job'
+    CORE_PROVIDER_JOB = 'core-provider-job'
+    CORE_CONSUMER_JOB = 'core-consumer-job'
+    CORE_FORENSICS_JOB = 'core-forensics-job'
+    CORE_FINAL_STAGING_JOB = 'core-final-staging-job'
 
 
 class RunStatus(str, Enum):
@@ -130,4 +132,3 @@ class ImageRepo(str, Enum):
     Class enum for image repo registries
     """
     CONTAINERS = 'containers.renci.org'
-    RENCIORG = 'renciorg'
