@@ -135,7 +135,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
 
     except Exception:
         # return a failure message
-        msg: str = f'Exception detected trying to generate a Superv workflow request.'
+        msg: str = 'Exception detected trying to generate a Superv workflow request.'
 
         # log the exception
         logger.exception(msg)
@@ -201,7 +201,7 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName = WorkflowTypeNam
         # is this a legit workflow type
         if workflow_type_name in WorkflowTypeName:
             # try to make the call for records
-            reset_val: bool = db_info_no_auto_commit.reset_job_order(WorkflowTypeName(workflow_type_name).value)
+            ret_val: bool = db_info_no_auto_commit.reset_job_order(WorkflowTypeName(workflow_type_name).value)
 
             # check the return value for failure, failed == true
             if not ret_val:
@@ -428,25 +428,3 @@ async def set_the_supervisor_job_order(workflow_type_name: WorkflowTypeName, job
 
     # return to the caller
     return JSONResponse(content={'Response': ret_val}, status_code=status_code, media_type="application/json")
-
-
-# sets the run.properties run status to 'new' for a job
-@APP.put('/run_data/{run_data}', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def submit_run_data_to_queue(run_data: str, status: RunStatus = RunStatus('new')):
-    """
-    Submits the run data to the queue.
-
-    """
-    # init the returned html status code and return value
-    status_code: int = 200
-    ret_val: dict = {}
-
-    try:
-        # convert the string to json
-        ret_val = json.loads(run_data)
-
-    except Exception:
-        ret_val = {'Error': 'Exception detected'}
-
-    # return to the caller
-    return JSONResponse(content={'Not implemented yet': ret_val}, status_code=status_code, media_type="application/json")
