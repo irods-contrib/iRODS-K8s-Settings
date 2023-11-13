@@ -46,6 +46,24 @@ class PGImplementation(PGUtilsMultiConnect):
         # clean up connections and cursors
         PGUtilsMultiConnect.__del__(self)
 
+    def insert_superv_request(self, status: str, request_data: dict):
+        """
+        iserts a request record into the database
+
+        :param status:
+        :param request_data:
+        :return:
+        """
+
+        # create the sql
+        sql: str = f"SELECT public.insert_request_item(_status:='{status}', _request_data:='{request_data}');"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
     def get_job_defs(self):
         """
         gets the supervisor job definitions

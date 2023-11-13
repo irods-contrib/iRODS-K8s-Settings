@@ -107,8 +107,51 @@ async def get_sv_component_versions() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
+@APP.put('/superv_workflow_request/{workflow_type}/initial_status/{initial_status}/{db_image}/db_image/os_image/{os_image}/test_image/{test_image}',
+         dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
+async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_image: str, os_image: str, test_image: str) -> json:
+    """
+    Adds a superv workflow request to the DB.
+
+    """
+    # init the returned html status code
+    status_code: int = 200
+    ret_val: dict = {'success'}
+
+    try:
+        # made sure all the params are valid
+        if workflow_type and run_status and db_image and os_image and test_image:
+            # build up the json
+            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, "os-image": os_image, "test-image": test_image}
+
+            # insert the record
+            ret_val = db_info.insert_superv_request(run_status.value, json.dumps(request_data))
+
+            # check the result
+            if ret_val != 0:
+                ret_val = {'Error': 'Error inserting database record.'}
+        else:
+            ret_val = {'Error': 'Invalid or missing input parameters.'}
+
+    except Exception:
+        # return a failure message
+        msg: str = f'Exception detected trying to generate a Superv workflow request.'
+
+        # log the exception
+        logger.exception(msg)
+
+        # set the status to a server error
+        status_code = 500
+
+        # set the error message in the return
+        ret_val = {'Error': msg}
+
+    # return to the caller
+    return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
+
+
 @APP.get('/get_job_order/{workflow_type_name}', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def display_job_order(workflow_type_name: WorkflowTypeName) -> json:
+async def display_job_order(workflow_type_name: WorkflowTypeName = WorkflowTypeName('CORE')) -> json:
     """
     Displays the job order for the workflow type selected.
 
@@ -144,7 +187,7 @@ async def display_job_order(workflow_type_name: WorkflowTypeName) -> json:
 
 
 @APP.get('/reset_job_order/{workflow_type_name}', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def reset_job_order(workflow_type_name: WorkflowTypeName) -> json:
+async def reset_job_order(workflow_type_name: WorkflowTypeName = WorkflowTypeName('CORE')) -> json:
     """
     Resets the job process order to the default for the workflow selected.
 
@@ -167,8 +210,7 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName) -> json:
 
                 # return a success message with the new job order
                 ret_val: list = [{'message': f'The job order for the {WorkflowTypeName(workflow_type_name).value} workflow has been reset to the '
-                                        f'default.'},
-                           {'job_order': job_order}]
+                                             f'default.'}, {'job_order': job_order}]
             else:
                 ret_val: dict = {'Error': 'Error resetting job order.'}
         else:
