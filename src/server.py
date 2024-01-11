@@ -117,7 +117,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
     """
     # init the returned html status code
     status_code: int = 200
-    ret_val: dict = {'success'}
+    ret_val: dict = {'status': 'success'}
 
     try:
         # made sure all the params are valid
