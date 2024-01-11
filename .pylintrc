@@ -14,3 +14,4 @@ min-public-methods=0
 fail-under=9.5
 extension-pkg-allow-list=pydantic
 max-locals=20
+max-args=10
