@@ -11,6 +11,8 @@
 
     Author: Phil Owen, RENCI.org
 """
+import json
+
 from src.common.pg_utils_multi import PGUtilsMultiConnect
 from src.common.logger import LoggingUtil
 
@@ -57,7 +59,7 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # create the sql
-        sql: str = f"SELECT public.insert_request_item(_status:='{status}', _request_data:='{request_data}');"
+        sql: str = f"SELECT public.insert_request_item(_status:='{status}', _request_data:='{json.dumps(request_data)}');"
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)
