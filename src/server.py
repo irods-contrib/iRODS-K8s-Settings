@@ -15,8 +15,9 @@ import os
 import typing
 
 from pathlib import Path
+from typing import Union
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 
@@ -108,9 +109,11 @@ async def get_sv_component_versions() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.put('/superv_workflow_request/{workflow_type}/initial_status/{initial_status}/{db_image}/db_image/os_image/{os_image}/test_image/{test_image}',
-         dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_image: str, os_image: str, test_image: str) -> json:
+@APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
+         response_model=None)
+async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, os_image: str,
+                                  db_image: Union[str, None] = Query(default=''), test_image: Union[str, None] = Query(default=''),
+                                  tests: Union[str, None] = Query(default='[{"PROVIDER": ["test_ils"]}]')) -> json:
     """
     Adds a superv workflow request to the DB.
 
@@ -121,12 +124,18 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
 
     try:
         # made sure all the params are valid
-        if workflow_type and run_status and db_image and os_image and test_image:
+        if workflow_type and run_status and os_image:  # and db_image and test_image and tests
+            # if there are tests
+            if tests is not None:
+                # convert the string to a dict
+                tests = json.loads(tests)
+
             # build up the json
-            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, "os-image": os_image, "test-image": test_image}
+            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, "os-image": os_image, "test-image": test_image,
+                                  'tests': tests}
 
             # insert the record
-            ret_val = db_info.insert_superv_request(run_status.value, json.dumps(request_data))
+            ret_val = db_info.insert_superv_request(run_status.value, request_data)
 
             # check the result
             if ret_val != 0:
