@@ -166,7 +166,7 @@ async def display_job_order(workflow_type_name: WorkflowTypeName = WorkflowTypeN
         # try to make the call for records
         ret_val = db_info.get_job_order(WorkflowTypeName(workflow_type_name).value)
 
-        # was there an error
+        # was there an error?
         if ret_val == -1:
             ret_val = {'Warning': 'No data found.'}
 
@@ -199,7 +199,7 @@ async def reset_job_order(workflow_type_name: WorkflowTypeName = WorkflowTypeNam
     ret_val: typing.Any = None
 
     try:
-        # is this a legit workflow type
+        # is this a legit workflow type?
         if workflow_type_name in WorkflowTypeName:
             # try to make the call for records
             ret_val: bool = db_info_no_auto_commit.reset_job_order(WorkflowTypeName(workflow_type_name).value)
@@ -248,7 +248,7 @@ async def display_job_definitions() -> json:
         # try to make the call for records
         job_data = db_info.get_job_defs()
 
-        # did we get an error
+        # did we get an error?
         if job_data != -1:
             # make sure we got a list of config data items
             if isinstance(job_data, list):
