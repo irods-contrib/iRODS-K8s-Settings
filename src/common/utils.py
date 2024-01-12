@@ -95,6 +95,15 @@ class WorkflowTypeName(str, Enum):
     UNIT = 'UNIT'
 
 
+class DBType(str, Enum):
+    """
+    Enum class for the various database types
+    """
+    DEFAULT = 'default'
+    MYSQL = "mysql"
+    POSTGRESQL = "postgresql"
+
+
 class JobTypeName(str, Enum):
     """
     Class enum for k8s job type names
@@ -125,7 +134,7 @@ class RunStatus(str, Enum):
     """
     NEW = 'new'
     DEBUG = 'debug'
-    DO_NOT_RERUN = 'do not rerun'
+    DO_NOT_RUN = 'do not run'
 
 
 class ImageRepo(str, Enum):
