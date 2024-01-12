@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse, FileResponse
 
 from src.common.logger import LoggingUtil
 from src.common.pg_impl import PGImplementation
-from src.common.utils import GenUtils, WorkflowTypeName, RunStatus, JobTypeName, NextJobTypeName
+from src.common.utils import GenUtils, WorkflowTypeName, RunStatus, JobTypeName, NextJobTypeName, DBType
 from src.common.security import Security
 from src.common.bearer import JWTBearer
 
@@ -111,8 +111,8 @@ async def get_sv_component_versions() -> json:
 
 @APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
          response_model=None)
-async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, os_image: str,
-                                  db_image: Union[str, None] = Query(default=''), test_image: Union[str, None] = Query(default=''),
+async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_type: DBType,
+                                  db_image: Union[str, None] = Query(default=''), os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
                                   tests: Union[str, None] = Query(default='[{"PROVIDER": ["test_ils"]}]')) -> json:
     """
     Adds a superv workflow request to the DB.
@@ -131,8 +131,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
                 tests = json.loads(tests)
 
             # build up the json
-            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, "os-image": os_image, "test-image": test_image,
-                                  'tests': tests}
+            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image, 'tests': tests}
 
             # insert the record
             ret_val = db_info.insert_superv_request(run_status.value, request_data)
@@ -140,6 +139,8 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
             # check the result
             if ret_val != 0:
                 ret_val = {'Error': 'Error inserting database record.'}
+            else:
+                ret_val = {'Success': 'Request successfully submitted.'}
         else:
             ret_val = {'Error': 'Invalid or missing input parameters.'}
 
