@@ -109,58 +109,6 @@ async def get_sv_component_versions() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
-         response_model=None)
-async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_type: DBType,
-                                  db_image: Union[str, None] = Query(default=''), os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
-                                  tests: Union[str, None] = Query(default='[{"PROVIDER": ["test_ils"]}]')) -> json:
-    """
-    Adds a superv workflow request to the DB.
-
-    """
-    # init the returned html status code
-    status_code: int = 200
-    ret_val: dict = {'status': 'success'}
-
-    try:
-        # made sure all the params are valid
-        if workflow_type and run_status and os_image:  # and db_image and test_image and tests
-            # if there are tests
-            if tests is not None:
-                # convert the string to a dict
-                tests = json.loads(tests)
-
-            # build up the json
-            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image, 'tests': tests}
-
-            # insert the record
-            ret_val = db_info.insert_superv_request(run_status.value, request_data)
-
-            # check the result
-            if ret_val != 0:
-                ret_val = {'Error': 'Error inserting database record.'}
-            else:
-                ret_val = {'Success': 'Request successfully submitted.'}
-        else:
-            ret_val = {'Error': 'Invalid or missing input parameters.'}
-
-    except Exception:
-        # return a failure message
-        msg: str = 'Exception detected trying to generate a Superv workflow request.'
-
-        # log the exception
-        logger.exception(msg)
-
-        # set the status to a server error
-        status_code = 500
-
-        # set the error message in the return
-        ret_val = {'Error': msg}
-
-    # return to the caller
-    return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
-
-
 @APP.get('/get_job_order/{workflow_type_name}', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def display_job_order(workflow_type_name: WorkflowTypeName = WorkflowTypeName('CORE')) -> json:
     """
@@ -333,6 +281,59 @@ async def get_the_log_file(log_file: str):
 
     # if we get here return an error
     return JSONResponse(content={'Response': 'Error - You must select a log file.'}, status_code=404, media_type="application/json")
+
+
+@APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
+         response_model=None)
+async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_type: DBType,
+                                  db_image: Union[str, None] = Query(default=''), os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
+                                  tests: Union[str, None] = Query(default='[{"PROVIDER": ["test_ils"]}]'),
+                                  request_group: Union[str, None] = Query(default='')) -> json:
+    """
+    Adds a superv workflow request to the DB.
+
+    """
+    # init the returned html status code
+    status_code: int = 200
+    ret_val: dict = {'status': 'success'}
+
+    try:
+        # made sure all the params are valid
+        if workflow_type and run_status and os_image:  # and db_image and test_image and tests
+            # if there are tests
+            if tests is not None:
+                # convert the string to a dict
+                tests = json.loads(tests)
+
+            # build up the json
+            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image, 'tests': tests}
+
+            # insert the record
+            ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
+
+            # check the result
+            if ret_val != 0:
+                ret_val = {'Error': 'Error inserting database record.'}
+            else:
+                ret_val = {'Success': 'Request successfully submitted.'}
+        else:
+            ret_val = {'Error': 'Invalid or missing input parameters.'}
+
+    except Exception:
+        # return a failure message
+        msg: str = 'Exception detected trying to generate a Superv workflow request.'
+
+        # log the exception
+        logger.exception(msg)
+
+        # set the status to a server error
+        status_code = 500
+
+        # set the error message in the return
+        ret_val = {'Error': msg}
+
+    # return to the caller
+    return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
 # sets the run.properties run status to 'new' for a job

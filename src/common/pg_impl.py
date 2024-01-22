@@ -49,17 +49,20 @@ class PGImplementation(PGUtilsMultiConnect):
         # clean up connections and cursors
         PGUtilsMultiConnect.__del__(self)
 
-    def insert_superv_request(self, status: str, request_data: dict):
+    def insert_superv_request(self, status: str, request_data: dict, request_group: str):
         """
-        iserts a request record into the database
+        inserts a request record into the database
 
         :param status:
         :param request_data:
+        :param request_group:
+
         :return:
         """
 
         # create the sql
-        sql: str = f"SELECT public.insert_request_item(_status:='{status}', _request_data:='{json.dumps(request_data)}');"
+        sql: str = (f"SELECT public.insert_request_item(_status:='{status}', _request_data:='{json.dumps(request_data)}', "
+                    f"_request_group:='{request_group}');")
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)
@@ -106,13 +109,8 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # declare an array of the job id and next job type id in sequence
-        workflow_job_types: dict = {
-            'CORE': ['1, 2', '2, 3'],
-            'FEDERATION': ['1, 2', '2, 3'],
-            'PLUGIN': ['1, 2', '2, 3'],
-            'TOPOLOGY': ['1, 2', '2, 3'],
-            'UNIT': ['1, 2', '2, 3']
-            }
+        workflow_job_types: dict = {'CORE': ['1, 2', '2, 3'], 'FEDERATION': ['1, 2', '2, 3'], 'PLUGIN': ['1, 2', '2, 3'],
+                                    'TOPOLOGY': ['1, 2', '2, 3'], 'UNIT': ['1, 2', '2, 3']}
 
         # init the failed flag
         failed: bool = False
