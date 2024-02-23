@@ -49,6 +49,86 @@ class PGImplementation(PGUtilsMultiConnect):
         # clean up connections and cursors
         PGUtilsMultiConnect.__del__(self)
 
+    def get_test_type_names(self):
+        """
+        gets the test types
+
+        :return:
+        """
+
+        # create the sql
+        sql: str = f"SELECT public.get_test_type_names_json();"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
+    def get_test_names(self):
+        """
+        gets the test names
+
+        :return:
+        """
+
+        # create the sql
+        sql: str = f"SELECT public.get_test_names_json();"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
+    def get_dbms_image_names(self):
+        """
+        gets the DBMS types
+
+        :return:
+        """
+
+        # create the sql
+        sql: str = f"SELECT public.get_dbms_image_names_json();"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
+    def get_os_image_names(self):
+        """
+        gets the test types
+
+        :return:
+        """
+
+        # create the sql
+        sql: str = f"SELECT public.get_os_image_names_json();"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
+    def get_run_status(self, request_group):
+        """
+        gets the run status
+
+        :return:
+        """
+
+        # create the sql
+        sql: str = f"SELECT public.get_run_status_json('{request_group}');"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
     def insert_superv_request(self, status: str, request_data: dict, request_group: str):
         """
         inserts a request record into the database
