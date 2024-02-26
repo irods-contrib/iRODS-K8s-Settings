@@ -19,7 +19,7 @@ from typing import Union
 
 from fastapi import FastAPI, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, FileResponse
 
 from src.common.logger import LoggingUtil
 from src.common.pg_impl import PGImplementation
@@ -109,7 +109,7 @@ async def get_sv_component_versions() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.get('/get_test_type_names', status_code=200, response_model=None)
+@APP.get('/get_test_type_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def get_test_type_names() -> json:
     """
     Returns the distinct test types.
@@ -130,7 +130,7 @@ async def get_test_type_names() -> json:
 
     except Exception:
         # return a failure message
-        msg: str = f'Exception detected trying to get the test suite types.'
+        msg: str = 'Exception detected trying to get the test suite types.'
 
         # log the exception
         logger.exception(msg)
@@ -145,7 +145,7 @@ async def get_test_type_names() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.get('/get_test_names', status_code=200, response_model=None)
+@APP.get('/get_test_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def get_test_names() -> json:
     """
     Returns the distinct test types.
@@ -166,7 +166,7 @@ async def get_test_names() -> json:
 
     except Exception:
         # return a failure message
-        msg: str = f'Exception detected trying to get the test names.'
+        msg: str = 'Exception detected trying to get the test names.'
 
         # log the exception
         logger.exception(msg)
@@ -181,7 +181,7 @@ async def get_test_names() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.get('/get_dbms_image_names', status_code=200, response_model=None)
+@APP.get('/get_dbms_image_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def get_dbms_image_names() -> json:
     """
     Returns the distinct test types.
@@ -202,7 +202,7 @@ async def get_dbms_image_names() -> json:
 
     except Exception:
         # return a failure message
-        msg: str = f'Exception detected trying to get the test suite types.'
+        msg: str = 'Exception detected trying to get the test suite types.'
 
         # log the exception
         logger.exception(msg)
@@ -217,7 +217,7 @@ async def get_dbms_image_names() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.get('/get_os_image_names', status_code=200, response_model=None)
+@APP.get('/get_os_image_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def get_os_image_names() -> json:
     """
     Returns the distinct test types.
@@ -238,7 +238,7 @@ async def get_os_image_names() -> json:
 
     except Exception:
         # return a failure message
-        msg: str = f'Exception detected trying to get the test suite types.'
+        msg: str = 'Exception detected trying to get the test suite types.'
 
         # log the exception
         logger.exception(msg)
@@ -253,7 +253,7 @@ async def get_os_image_names() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.get('/get_run_status/', status_code=200, response_model=None)
+@APP.get('/get_run_status/', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def get_run_status(request_group: Union[str, None] = Query(default='')) -> json:
     """
     Returns the distinct test types.
@@ -274,7 +274,7 @@ async def get_run_status(request_group: Union[str, None] = Query(default='')) ->
 
     except Exception:
         # return a failure message
-        msg: str = f'Exception detected trying to get the run status.'
+        msg: str = 'Exception detected trying to get the run status.'
 
         # log the exception
         logger.exception(msg)

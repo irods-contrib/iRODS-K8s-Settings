@@ -21,12 +21,12 @@ class PGImplementation(PGUtilsMultiConnect):
     """
         Class that contains DB calls for the Settings app.
 
-        Note this class inherits from the PGUtilsMultiConnect class
+        Note this class inherited from the PGUtilsMultiConnect class
         which has all the connection and cursor handling.
     """
 
     def __init__(self, db_names: tuple, _logger=None, _auto_commit=True):
-        # if a reference to a logger passed in use it
+        # if this is a reference to a logger passed in use it
         if _logger is not None:
             # get a handle to a logger
             self.logger = _logger
@@ -57,7 +57,7 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # create the sql
-        sql: str = f"SELECT public.get_test_type_names_json();"
+        sql: str = "SELECT public.get_test_type_names_json();"
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)
@@ -73,7 +73,7 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # create the sql
-        sql: str = f"SELECT public.get_test_names_json();"
+        sql: str = "SELECT public.get_test_names_json();"
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)
@@ -89,7 +89,7 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # create the sql
-        sql: str = f"SELECT public.get_dbms_image_names_json();"
+        sql: str = "SELECT public.get_dbms_image_names_json();"
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)
@@ -105,7 +105,7 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # create the sql
-        sql: str = f"SELECT public.get_os_image_names_json();"
+        sql: str = "SELECT public.get_os_image_names_json();"
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)
