@@ -99,7 +99,6 @@ class DBType(str, Enum):
     """
     Enum class for the various database types
     """
-    DEFAULT = 'default'
     MYSQL = "mysql"
     POSTGRESQL = "postgresql"
 
