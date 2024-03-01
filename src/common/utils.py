@@ -100,7 +100,7 @@ class DBType(str, Enum):
     Enum class for the various database types
     """
     MYSQL = "mysql"
-    POSTGRESQL = "postgresql"
+    POSTGRESQL = "postgres"
 
 
 class JobTypeName(str, Enum):
