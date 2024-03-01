@@ -463,9 +463,10 @@ async def get_the_log_file(log_file: str):
     return JSONResponse(content={'Response': 'Error - You must select a log file.'}, status_code=404, media_type="application/json")
 
 
-@APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}/package_dir/{package_dir:path}',
+@APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}',
          dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_type: DBType, package_dir: str,
+async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_type: DBType,
+                                  package_dir: Union[str, None] = Query(default=''),
                                   os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
                                   db_image: Union[str, None] = Query(default='postgres:14.11'),
                                   tests: Union[str, None] = Query(default='[{"PROVIDER": ["test_ihelp"]}]'),
