@@ -10,6 +10,8 @@ import json
 import os
 import typing
 
+from itertools import batched
+
 from pathlib import Path
 from typing import Union
 
@@ -459,13 +461,12 @@ async def get_the_log_file(log_file: str):
     return JSONResponse(content={'Response': 'Error - You must select a log file.'}, status_code=404, media_type="application/json")
 
 
-@APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}',
-         dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
+@APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
+         response_model=None)
 async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_type: DBType,
                                   package_dir: Union[str, None] = Query(default=''),
                                   os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
-                                  db_image: Union[str, None] = Query(default='postgres:14.11'),
-                                  tests: Union[str, None] = Query(default='[{"PROVIDER": ["test_ihelp"]}]'),
+                                  db_image: Union[str, None] = Query(default='postgres:14.11'), tests: Union[str, None] = Query(default=''),
                                   request_group: Union[str, None] = Query(default='')) -> json:
     """
     Adds a superv workflow request to the DB.
@@ -478,17 +479,64 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
     try:
         # made sure all the params are valid
         if workflow_type and run_status and os_image:  # and db_image and test_image and tests
+            # convert the string to a dict
+            test_request = json.loads(tests)
+
             # if there are tests
-            if tests is not None:
-                # convert the string to a dict
-                tests = json.loads(tests)
+            if len(test_request) > 0:
+                # init a couple storage lists
+                provider_tests: list = []
+                consumer_tests: list = []
 
-            # build up the json
-            request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image, 'tests': tests,
-                                  'package-dir': package_dir}
+                # define the max number of tests in a group (run)
+                batch_size: int = 45
 
-            # insert the record
-            ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
+                # there could be a set of tests for a provider and/or a consumer for each test
+                for test in test_request:
+                    if 'PROVIDER' in test:
+                        # create batches of N
+                        for batch in batched(test['PROVIDER'], batch_size):
+                            # append the test group
+                            provider_tests.append({'PROVIDER': batch})
+                    elif 'CONSUMER' in test:
+                        # just save the consumer tests requested for now, no batching
+                        consumer_tests = test
+                    else:
+                        logger.warning(f'Unrecognized test type.')
+
+                # if there were no provider tests found
+                if len(provider_tests) > 0:
+                    # insert each test group into the DB
+                    for item in provider_tests:
+
+                        final_request: list = [item]
+
+                        # if there were consumer tests add it in
+                        if len(consumer_tests) > 0:
+                            final_request.extend(consumer_tests)
+
+                        # build up the json
+                        request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
+                                              'tests': final_request, 'package-dir': package_dir}
+
+                        # insert the record
+                        ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
+                else:
+                    # build up the json
+                    request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
+                                          'tests': test_request, 'package-dir': package_dir}
+
+                    # insert the record
+                    ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
+
+            # else let it pass through
+            else:
+                # build up the json
+                request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
+                                      'tests': test_request, 'package-dir': package_dir}
+
+                # insert the record
+                ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
 
             # check the result
             if ret_val != 0:
