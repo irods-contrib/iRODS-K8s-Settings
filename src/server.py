@@ -489,7 +489,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
                 consumer_tests: list = []
 
                 # define the max number of tests in a group (run)
-                batch_size: int = 45
+                batch_size: int = os.getenv('BATCH_SIZE', 25)
 
                 # there could be a set of tests for a provider and/or a consumer for each test
                 for test in test_request:
@@ -513,7 +513,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
 
                         # if there were consumer tests add it in
                         if len(consumer_tests) > 0:
-                            final_request.extend(consumer_tests)
+                            final_request.append(consumer_tests)
 
                         # build up the json
                         request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
