@@ -109,6 +109,22 @@ class PGImplementation(PGUtilsMultiConnect):
         # return the data
         return ret_val
 
+    def get_test_request_names(self):
+        """
+        gets the test types
+
+        :return:
+        """
+
+        # create the sql
+        sql: str = "SELECT public.get_test_request_names_json();"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
     def get_run_status(self, request_group):
         """
         gets the run status

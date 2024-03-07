@@ -251,6 +251,42 @@ async def get_os_image_names() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
+@APP.get('/get_test_request_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
+async def get_os_image_names() -> json:
+    """
+    Returns the distinct test request names.
+
+    """
+
+    # init the returned html status code
+    status_code: int = 200
+    ret_val: dict = {}
+
+    try:
+        # try to make the call for records
+        ret_val = db_info.get_test_request_names()
+
+        # was there an error?
+        if ret_val == -1:
+            ret_val = {'Warning': 'No data found.'}
+
+    except Exception:
+        # return a failure message
+        msg: str = 'Exception detected trying to get the test suite types.'
+
+        # log the exception
+        logger.exception(msg)
+
+        # set the status to a server error
+        status_code = 500
+
+        # set the error message in the return
+        ret_val = {'Error': msg}
+
+    # return to the caller
+    return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
+
+
 @APP.get('/get_run_status/', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
 async def get_run_status(request_group: Union[str, None] = Query(default='')) -> json:
     """
@@ -489,7 +525,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
                 consumer_tests: list = []
 
                 # define the max number of tests in a group (run)
-                batch_size: int = os.getenv('BATCH_SIZE', 25)
+                batch_size: int = int(os.getenv('BATCH_SIZE', 25))
 
                 # there could be a set of tests for a provider and/or a consumer for each test
                 for test in test_request:
