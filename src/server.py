@@ -252,7 +252,7 @@ async def get_os_image_names() -> json:
 
 
 @APP.get('/get_test_request_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def get_os_image_names() -> json:
+async def get_os_request_names() -> json:
     """
     Returns the distinct test request names.
 
@@ -511,6 +511,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
     # init the returned html status code
     status_code: int = 200
     ret_val: dict = {'status': 'success'}
+    db_ret_val: int = 0
 
     try:
         # made sure all the params are valid
@@ -518,64 +519,79 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
             # convert the string to a dict
             test_request = json.loads(tests)
 
-            # if there are tests
+            # create base request db object
+            base_request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
+                                       'package-dir': package_dir, 'tests': None}
+
+            # if there are tests declared
             if len(test_request) > 0:
+                # define the max number of tests in a group (run)
+                batch_size: int = int(os.getenv('BATCH_SIZE', '25'))
+
                 # init a couple storage lists
                 provider_tests: list = []
                 consumer_tests: list = []
 
-                # define the max number of tests in a group (run)
-                batch_size: int = int(os.getenv('BATCH_SIZE', 25))
+                # get a list of all the tests
+                test_list: list = db_info.get_test_names()
 
-                # there could be a set of tests for a provider and/or a consumer for each test
-                for test in test_request:
-                    if 'PROVIDER' in test:
-                        # create batches of N
-                        for batch in batched(test['PROVIDER'], batch_size):
+                # get a lst of the tests that are long-running
+                long_running_tests: list = [el['label'] for el in test_list if el['description'] == 'L']
+
+                # there could be a set of tests for a provider and/or a consumer for each test request
+                for test_type in test_request:
+                    # if provider tests were requests
+                    if 'PROVIDER' in test_type:
+                        # get a list of the long-running tests requested
+                        long_runners: list = [test for test in test_type['PROVIDER'] if test in long_running_tests]
+
+                        # store the solo test request
+                        for item in long_runners:
+                            provider_tests.append({'PROVIDER': [item]})
+
+                        # get the list of shorter running tests
+                        short_runners: list = [test for test in test_type['PROVIDER'] if test not in long_running_tests]
+
+                        # the rest go off in batches of BATCH_SIZE for the short-running tests
+                        for batch in batched(short_runners, batch_size):
                             # append the test group
                             provider_tests.append({'PROVIDER': batch})
-                    elif 'CONSUMER' in test:
+
+                    # if consumer tests were requested
+                    elif 'CONSUMER' in test_type:
                         # just save the consumer tests requested for now, no batching
-                        consumer_tests = test
+                        consumer_tests = test_type
                     else:
-                        logger.warning(f'Unrecognized test type.')
+                        logger.warning('Unrecognized test type for request group: %s.', request_group)
 
                 # if there were no provider tests found
                 if len(provider_tests) > 0:
                     # insert each test group into the DB
                     for item in provider_tests:
-
+                        # start a single test group
                         final_request: list = [item]
 
-                        # if there were consumer tests add it in
+                        # if there were consumer tests, add it in. every provider test group gets all the consumer tests
                         if len(consumer_tests) > 0:
                             final_request.append(consumer_tests)
 
-                        # build up the json
-                        request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
-                                              'tests': final_request, 'package-dir': package_dir}
+                        # build up the json for the DB
+                        base_request_data['tests'] = final_request
 
                         # insert the record
-                        ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
-                else:
-                    # build up the json
-                    request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
-                                          'tests': test_request, 'package-dir': package_dir}
+                        db_info.insert_superv_request(run_status.value, base_request_data, request_group)
 
-                    # insert the record
-                    ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
+                else:
+                    # build up the json and insert the record
+                    db_ret_val = db_info.insert_superv_request(run_status.value, base_request_data, request_group)
 
             # else let it pass through
             else:
-                # build up the json
-                request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
-                                      'tests': test_request, 'package-dir': package_dir}
-
-                # insert the record
-                ret_val = db_info.insert_superv_request(run_status.value, request_data, request_group)
+                # build up the json and insert the record
+                db_ret_val = db_info.insert_superv_request(run_status.value, base_request_data, request_group)
 
             # check the result
-            if ret_val != 0:
+            if db_ret_val != 0:
                 ret_val = {'Error': 'Error inserting database record.'}
             else:
                 ret_val = {'Success': 'Request successfully submitted.'}
