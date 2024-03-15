@@ -579,7 +579,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
                         base_request_data['tests'] = final_request
 
                         # insert the record
-                        db_info.insert_superv_request(run_status.value, base_request_data, request_group)
+                        db_ret_val = db_info.insert_superv_request(run_status.value, base_request_data, request_group)
 
                 else:
                     # build up the json and insert the record
