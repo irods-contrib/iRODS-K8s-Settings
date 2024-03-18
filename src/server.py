@@ -525,12 +525,15 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
 
             # if there are tests declared
             if len(test_request) > 0:
-                # define the max number of tests in a group (run)
-                batch_size: int = int(os.getenv('BATCH_SIZE', '25'))
-
                 # init a couple storage lists
                 provider_tests: list = []
                 consumer_tests: list = []
+
+                # define the max number of tests in a short running group
+                short_batch_size: int = int(os.getenv('SHORT_BATCH_SIZE', '10'))
+
+                # define the max number of tests in a long running group
+                long_batch_size: int = int(os.getenv('LONG_BATCH_SIZE', '2'))
 
                 # get a list of all the tests
                 test_list: list = db_info.get_test_names()
@@ -545,15 +548,16 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
                         # get a list of the long-running tests requested
                         long_runners: list = [test for test in test_type['PROVIDER'] if test in long_running_tests]
 
-                        # store the solo test request
-                        for item in long_runners:
-                            provider_tests.append({'PROVIDER': [item]})
+                        # the long runners go off in batches of LONG_BATCH_SIZE
+                        for batch in batched(long_runners, long_batch_size):
+                            # append the test group
+                            provider_tests.append({'PROVIDER': batch})
 
                         # get the list of shorter running tests
                         short_runners: list = [test for test in test_type['PROVIDER'] if test not in long_running_tests]
 
-                        # the rest go off in batches of BATCH_SIZE for the short-running tests
-                        for batch in batched(short_runners, batch_size):
+                        # the rest go off in batches of SHORT_BATCH_SIZE for short-running tests
+                        for batch in batched(short_runners, short_batch_size):
                             # append the test group
                             provider_tests.append({'PROVIDER': batch})
 
