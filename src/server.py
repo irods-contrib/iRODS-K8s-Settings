@@ -501,7 +501,7 @@ async def get_the_log_file(log_file: str):
          response_model=None)
 async def superv_workflow_request(workflow_type: WorkflowTypeName,
                                   run_status: RunStatus,
-                                  db_type: Union[DBType, None] = Query(default='POSTGRESQL'),
+                                  db_type: Union[DBType, None] = Query(default=DBType.POSTGRESQL),
                                   package_dir: Union[str, None] = Query(default=''),
                                   os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
                                   db_image: Union[str, None] = Query(default='postgres:14.11'),
