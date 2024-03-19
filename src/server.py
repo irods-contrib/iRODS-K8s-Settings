@@ -518,7 +518,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName,
 
     try:
         # made sure all the params are valid
-        if workflow_type and run_status and os_image:  # and db_image and test_image and tests
+        if workflow_type and run_status and os_image and tests:  # and db_image and test_image and tests
             # convert the string to a dict
             test_request = json.loads(tests)
 
