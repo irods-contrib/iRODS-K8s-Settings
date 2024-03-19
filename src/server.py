@@ -499,10 +499,13 @@ async def get_the_log_file(log_file: str):
 
 @APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
          response_model=None)
-async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus, db_type: DBType,
+async def superv_workflow_request(workflow_type: WorkflowTypeName,
+                                  run_status: RunStatus,
+                                  db_type: Union[DBType, None] = Query(default='POSTGRESQL'),
                                   package_dir: Union[str, None] = Query(default=''),
                                   os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
-                                  db_image: Union[str, None] = Query(default='postgres:14.11'), tests: Union[str, None] = Query(default=''),
+                                  db_image: Union[str, None] = Query(default='postgres:14.11'),
+                                  tests: Union[str, None] = Query(default=''),
                                   request_group: Union[str, None] = Query(default='')) -> json:
     """
     Adds a superv workflow request to the DB.
