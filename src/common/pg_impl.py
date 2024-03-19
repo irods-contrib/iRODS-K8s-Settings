@@ -45,7 +45,7 @@ class PGImplementation(PGUtilsMultiConnect):
         # clean up connections and cursors
         PGUtilsMultiConnect.__del__(self)
 
-    def get_test_type_names(self):
+    def get_environment_type_names(self):
         """
         gets the test types
 
@@ -53,7 +53,7 @@ class PGImplementation(PGUtilsMultiConnect):
         """
 
         # create the sql
-        sql: str = "SELECT public.get_test_type_names_json();"
+        sql: str = "SELECT public.get_environment_type_names_json();"
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)

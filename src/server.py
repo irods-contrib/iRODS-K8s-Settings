@@ -107,8 +107,8 @@ async def get_sv_component_versions() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.get('/get_test_type_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
-async def get_test_type_names() -> json:
+@APP.get('/get_environment_type_names', dependencies=[Depends(JWTBearer(security))], status_code=200, response_model=None)
+async def get_environment_type_names() -> json:
     """
     Returns the distinct test types.
 
@@ -120,7 +120,7 @@ async def get_test_type_names() -> json:
 
     try:
         # try to make the call for records
-        ret_val = db_info.get_test_type_names()
+        ret_val = db_info.get_environment_type_names()
 
         # was there an error?
         if ret_val == -1:
@@ -128,7 +128,7 @@ async def get_test_type_names() -> json:
 
     except Exception:
         # return a failure message
-        msg: str = 'Exception detected trying to get the test suite types.'
+        msg: str = 'Exception detected trying to get the environment types.'
 
         # log the exception
         logger.exception(msg)
@@ -519,80 +519,66 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: R
             # convert the string to a dict
             test_request = json.loads(tests)
 
-            # create base request db object
-            base_request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
-                                       'package-dir': package_dir, 'tests': None}
-
             # if there are tests declared
             if len(test_request) > 0:
-                # init a couple storage lists
-                provider_tests: list = []
-                consumer_tests: list = []
+                # create base request db object
+                base_request_data: dict = {'workflow-type': workflow_type, 'db-image': db_image, 'db-type': db_type, "os-image": os_image,
+                                           'package-dir': package_dir, 'tests': None}
 
-                # define the max number of tests in a short running group
-                short_batch_size: int = int(os.getenv('SHORT_BATCH_SIZE', '10'))
+                # get the run location
+                run_location = next(iter(test_request))
 
-                # define the max number of tests in a long running group
-                long_batch_size: int = int(os.getenv('LONG_BATCH_SIZE', '2'))
+                # was there a valid run location?
+                if run_location in ['CONSUMER', 'PROVIDER']:
 
-                # get a list of all the tests
-                test_list: list = db_info.get_test_names()
+                    # init a storage list for the tests
+                    tests: list = []
 
-                # get a lst of the tests that are long-running
-                long_running_tests: list = [el['label'] for el in test_list if el['description'] == 'L']
+                    # define the max number of tests in a short-running group
+                    short_batch_size: int = int(os.getenv('SHORT_BATCH_SIZE', '10'))
 
-                # there could be a set of tests for a provider and/or a consumer for each test request
-                for test_type in test_request:
-                    # if provider tests were requests
-                    if 'PROVIDER' in test_type:
-                        # get a list of the long-running tests requested
-                        long_runners: list = [test for test in test_type['PROVIDER'] if test in long_running_tests]
+                    # define the max number of tests in a long-running group
+                    long_batch_size: int = int(os.getenv('LONG_BATCH_SIZE', '2'))
 
-                        # the long runners go off in batches of LONG_BATCH_SIZE
-                        for batch in batched(long_runners, long_batch_size):
-                            # append the test group
-                            provider_tests.append({'PROVIDER': batch})
+                    # get a list of all the tests
+                    test_list: list = db_info.get_test_names()
 
-                        # get the list of shorter running tests
-                        short_runners: list = [test for test in test_type['PROVIDER'] if test not in long_running_tests]
+                    # get a lst of the tests that are long-running
+                    long_running_tests: list = [el['label'] for el in test_list if el['description'] == 'L']
 
-                        # the rest go off in batches of SHORT_BATCH_SIZE for short-running tests
-                        for batch in batched(short_runners, short_batch_size):
-                            # append the test group
-                            provider_tests.append({'PROVIDER': batch})
+                    # get a list of the long-running tests requested
+                    long_runners: list = [test for test in test_request[run_location] if test in long_running_tests]
 
-                    # if consumer tests were requested
-                    elif 'CONSUMER' in test_type:
-                        # just save the consumer tests requested for now, no batching
-                        consumer_tests = test_type
-                    else:
-                        logger.warning('Unrecognized test type for request group: %s.', request_group)
+                    # the long runners go off in batches of LONG_BATCH_SIZE
+                    for batch in batched(long_runners, long_batch_size):
+                        # append the test group
+                        tests.append({run_location: batch})
 
-                # if there were no provider tests found
-                if len(provider_tests) > 0:
+                    # get the list of shorter running tests
+                    short_runners: list = [test for test in test_request[run_location] if test not in long_running_tests]
+
+                    # the rest go off in batches of SHORT_BATCH_SIZE for short-running tests
+                    for batch in batched(short_runners, short_batch_size):
+                        # append the test group
+                        tests.append({run_location: batch})
+                else:
+                    logger.warning('Unrecognized test type for request group: %s.', request_group)
+
+                # if there were tests found
+                if len(tests) > 0:
                     # insert each test group into the DB
-                    for item in provider_tests:
-                        # start a single test group
-                        final_request: list = [item]
-
-                        # if there were consumer tests, add it in. every provider test group gets all the consumer tests
-                        if len(consumer_tests) > 0:
-                            final_request.append(consumer_tests)
-
+                    for item in tests:
                         # build up the json for the DB
-                        base_request_data['tests'] = final_request
+                        base_request_data['tests'] = item
 
                         # insert the record
                         db_ret_val = db_info.insert_superv_request(run_status.value, base_request_data, request_group)
-
+                # else there were no valid tests requested
                 else:
-                    # build up the json and insert the record
-                    db_ret_val = db_info.insert_superv_request(run_status.value, base_request_data, request_group)
-
-            # else let it pass through
+                    ret_val = {'Error': 'No valid tests found.'}
+            # else there were no tests requested
             else:
-                # build up the json and insert the record
-                db_ret_val = db_info.insert_superv_request(run_status.value, base_request_data, request_group)
+                ret_val = {'Error': 'No tests requested.'}
 
             # check the result
             if db_ret_val != 0:
