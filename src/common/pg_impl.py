@@ -47,7 +47,7 @@ class PGImplementation(PGUtilsMultiConnect):
 
     def get_environment_type_names(self):
         """
-        gets the test types
+        gets the test environment types
 
         :return:
         """
@@ -79,7 +79,7 @@ class PGImplementation(PGUtilsMultiConnect):
 
     def get_dbms_image_names(self):
         """
-        gets the DBMS types
+        gets the DBMS image names
 
         :return:
         """
@@ -95,7 +95,7 @@ class PGImplementation(PGUtilsMultiConnect):
 
     def get_os_image_names(self):
         """
-        gets the test types
+        gets the os image names
 
         :return:
         """
@@ -111,13 +111,29 @@ class PGImplementation(PGUtilsMultiConnect):
 
     def get_test_request_names(self):
         """
-        gets the test types
+        gets the irods test request names
 
         :return:
         """
 
         # create the sql
         sql: str = "SELECT public.get_test_request_names_json();"
+
+        # get the data
+        ret_val = self.exec_sql('irods-sv', sql)
+
+        # return the data
+        return ret_val
+
+    def get_test_request_name_exists(self, request_name):
+        """
+        gets true/false if the request name already exists
+
+        :return:
+        """
+
+        # create the sql
+        sql: str = f"SELECT public.get_test_request_name_exists('{request_name}');"
 
         # get the data
         ret_val = self.exec_sql('irods-sv', sql)

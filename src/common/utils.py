@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 from enum import Enum
 from src.common.logger import LoggingUtil
+from src.common.pg_impl import PGImplementation
 
 
 class GenUtils:
@@ -45,7 +46,7 @@ class GenUtils:
         # get the log file path
         log_file_path: str = LoggingUtil.get_log_path()
 
-        # if a filter param was declared make it a wildcard
+        # if a filter param was declared, make it a wildcard
         if filter_param:
             filter_param += '*'
 
@@ -60,7 +61,7 @@ class GenUtils:
             # save the absolute file path, endpoint URL, and file size in a dict
             ret_val.update({f"{file_path.name}_{counter}": {'file_path': final_path[1:], 'file_size': f'{file_path.stat().st_size} bytes'}})
 
-        # if nothing was found return a message
+        # if nothing was found, return a message
         if len(ret_val) == 0 and filter_param:
             ret_val = {'Warning': f'Nothing found using your filter parameter ({filter_param[:-1]})'}
 
@@ -78,6 +79,42 @@ class GenUtils:
 
         # return to the caller
         return freeze_mode
+
+    @staticmethod
+    def validate_settings_input(workflow_type, run_status, package_dir, tests, request_group, db_info) -> str:
+        """
+        checks to see if the path passed exists or is using a default
+
+        :return:
+        """
+        ret_val: list = []
+
+        if not workflow_type:
+            ret_val.append(['No workflow type found'])
+
+        if not run_status:
+            ret_val.append('No run status')
+
+        if len(package_dir) != 0 and not os.path.exists(package_dir):
+            ret_val.append('Invalid package directory')
+
+        if not tests:
+            ret_val.append('No tests')
+
+        if not request_group:
+            ret_val.append('No request group')
+        else:
+            # does the request group name already exist?
+            db_ret_val = db_info.get_test_request_name_exists(request_group)
+
+            # check the results
+            if db_ret_val < 0:
+                ret_val.append('DB error getting test request name.')
+            elif db_ret_val:
+                ret_val.append(f"Test request name '{request_group}' already exists.")
+
+        # return to the caller
+        return ', '.join(ret_val)
 
 
 class WorkflowTypeName(str, Enum):

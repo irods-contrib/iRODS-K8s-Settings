@@ -517,8 +517,11 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName,
     db_ret_val: int = 0
 
     try:
+        # get the validation results
+        validation_msg: str = GenUtils.validate_settings_input(workflow_type, run_status, package_dir, tests, request_group, db_info)
+
         # made sure all the params are valid
-        if workflow_type and run_status and os_image and tests:  # and db_image and test_image and tests
+        if len(validation_msg) == 0:
             # convert the string to a dict
             test_request = json.loads(tests)
 
@@ -579,6 +582,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName,
                 # else there were no valid tests requested
                 else:
                     ret_val = {'Error': 'No valid tests found.'}
+
             # else there were no tests requested
             else:
                 ret_val = {'Error': 'No tests requested.'}
@@ -589,7 +593,7 @@ async def superv_workflow_request(workflow_type: WorkflowTypeName,
             else:
                 ret_val = {'Success': 'Request successfully submitted.'}
         else:
-            ret_val = {'Error': 'Invalid or missing input parameters.'}
+            ret_val = {'Error': validation_msg}
 
     except Exception:
         # return a failure message
