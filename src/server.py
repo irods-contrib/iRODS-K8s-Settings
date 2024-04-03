@@ -38,7 +38,7 @@ APP.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, 
 log_level, log_path = LoggingUtil.prep_for_logging()
 
 # create a logger
-logger = LoggingUtil.init_logging("iRODS.Settings", level=log_level, line_format='medium', log_file_path=log_path)
+logger = LoggingUtil.init_logging('iRODS.Settings', level=log_level, line_format='medium', log_file_path=log_path)
 
 # specify the DB to get a connection
 # note the extra comma makes this single item a singleton tuple
@@ -458,18 +458,17 @@ async def display_job_definitions() -> json:
     return JSONResponse(content=ret_val, status_code=status_code, media_type="application/json")
 
 
-@APP.get("/get_log_file_list", dependencies=[Depends(JWTBearer(security))], response_model=None)
+@APP.get('/get_log_file_list', dependencies=[Depends(JWTBearer(security))], response_model=None)
 async def get_the_log_file_list(filter_param: str = ''):
     """
     Gets the log file list. An optional filter parameter (case-insensitive) can be used to search for targeted results.
 
     """
-
     # return the list to the caller in JSON format
     return JSONResponse(content={'Response': GenUtils.get_log_file_list(filter_param)}, status_code=200, media_type="application/json")
 
 
-@APP.get("/get_log_file/", dependencies=[Depends(JWTBearer(security))], response_model=None)
+@APP.get('/get_log_file/', dependencies=[Depends(JWTBearer(security))], response_model=None)
 async def get_the_log_file(log_file: str):
     """
     Gets the log file specified. This method only expects a properly named file.
@@ -495,6 +494,36 @@ async def get_the_log_file(log_file: str):
 
     # if we get here return an error
     return JSONResponse(content={'Response': 'Error - You must select a log file.'}, status_code=404, media_type="application/json")
+
+
+@APP.get('/get_test_results_tar_file', status_code=200, response_model=None)
+async def get_test_results_tar_file(file_name: Union[str, None] = Query(default='test_results.tar'),
+                                    request_name: Union[str, None] = Query(default=None)) -> json:
+    """
+    Returns the zip/tar of test result data in the file specified.
+    <br/>&nbsp;&nbsp;&nbsp;file_name: The name of the output file.
+    <br/>&nbsp;&nbsp;&nbsp;request_name: The name of the test run.
+    """
+    # make sure we got a log file
+    if request_name:
+        # init the log file path
+        tar_file_path: str = os.getenv('TAR_FILE_PATH')
+
+        # get the full path to the file
+        target_tar_file_path = os.path.join(tar_file_path, request_name)
+
+        # loop through the log file directory
+        for found_tar_file in Path(tar_file_path).rglob('*tar*'):
+            # if the target file is found in the log directory
+            if target_tar_file_path == str(found_tar_file):
+                # return the file to the caller
+                return FileResponse(path=target_tar_file_path, filename=file_name, media_type='application/x-tar')
+
+        # if we get here return an error
+        return JSONResponse(content={'Response': 'Error - Zip/Tar file does not exist.'}, status_code=404, media_type="application/json")
+
+    # if we get here return an error
+    return JSONResponse(content={'Response': 'Error - You must enter a request name.'}, status_code=404, media_type="application/json")
 
 
 @APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
