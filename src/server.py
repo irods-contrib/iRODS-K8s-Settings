@@ -496,31 +496,27 @@ async def get_the_log_file(log_file: str):
     return JSONResponse(content={'Response': 'Error - You must select a log file.'}, status_code=404, media_type="application/json")
 
 
-@APP.get('/get_test_results_tar_file', status_code=200, response_model=None)
-async def get_test_results_tar_file(file_name: Union[str, None] = Query(default='test_results.tar'),
-                                    request_name: Union[str, None] = Query(default=None)) -> json:
+@APP.get('/get_test_result_file', status_code=200, response_model=None)
+async def get_test_results_file(request_name: Union[str, None] = Query(default=None)) -> json:
     """
-    Returns the zip/tar of test result data in the file specified.
-    <br/>&nbsp;&nbsp;&nbsp;file_name: The name of the output file.
-    <br/>&nbsp;&nbsp;&nbsp;request_name: The name of the test run.
+    Returns the zip file of test result data for the request name specified.
+    <br/>&nbsp;&nbsp;&nbsp;request_name: The request name of the test run.
     """
     # make sure we got a log file
     if request_name:
         # init the log file path
-        tar_file_path: str = os.getenv('TAR_FILE_PATH')
+        base_dir_path: str = os.getenv('TEST_RESULT_PATH')
 
         # get the full path to the file
-        target_tar_file_path = os.path.join(tar_file_path, request_name)
+        target_file_path = os.path.join(base_dir_path, request_name)
 
         # loop through the log file directory
-        for found_tar_file in Path(tar_file_path).rglob('*tar*'):
-            # if the target file is found in the log directory
-            if target_tar_file_path == str(found_tar_file):
-                # return the file to the caller
-                return FileResponse(path=target_tar_file_path, filename=file_name, media_type='application/x-tar')
+        for file in Path(target_file_path).rglob('*zip*'):
+            # return the file to the caller
+            return FileResponse(path=os.path.join(target_file_path, file.name), filename=file.name, media_type='application/x-zip')
 
         # if we get here return an error
-        return JSONResponse(content={'Response': 'Error - Zip/Tar file does not exist.'}, status_code=404, media_type="application/json")
+        return JSONResponse(content={'Response': 'Error - Zip file does not exist.'}, status_code=404, media_type="application/json")
 
     # if we get here return an error
     return JSONResponse(content={'Response': 'Error - You must enter a request name.'}, status_code=404, media_type="application/json")
@@ -528,13 +524,10 @@ async def get_test_results_tar_file(file_name: Union[str, None] = Query(default=
 
 @APP.put('/superv_workflow_request/{workflow_type}/run_status/{run_status}', dependencies=[Depends(JWTBearer(security))], status_code=200,
          response_model=None)
-async def superv_workflow_request(workflow_type: WorkflowTypeName,
-                                  run_status: RunStatus,
-                                  db_type: Union[DBType, None] = Query(default=DBType.POSTGRESQL),
-                                  package_dir: Union[str, None] = Query(default=''),
+async def superv_workflow_request(workflow_type: WorkflowTypeName, run_status: RunStatus,
+                                  db_type: Union[DBType, None] = Query(default=DBType.POSTGRESQL), package_dir: Union[str, None] = Query(default=''),
                                   os_image: Union[str, None] = Query(default='ubuntu-20.04:latest'),
-                                  db_image: Union[str, None] = Query(default='postgres:14.11'),
-                                  tests: Union[str, None] = Query(default=''),
+                                  db_image: Union[str, None] = Query(default='postgres:14.11'), tests: Union[str, None] = Query(default=''),
                                   request_group: Union[str, None] = Query(default='')) -> json:
     """
     Adds a superv workflow request to the DB.
