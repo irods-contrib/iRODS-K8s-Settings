@@ -29,7 +29,7 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # create a new non-root user and switch to it
-RUN useradd --create-home -u 999 nru
+RUN useradd --create-home -u 1000 nru
 USER nru
 
 # Create the directory for the code and cd to it
