@@ -13,7 +13,6 @@ import os
 from pathlib import Path
 from enum import Enum
 from src.common.logger import LoggingUtil
-from src.common.pg_impl import PGImplementation
 
 
 class GenUtils:
