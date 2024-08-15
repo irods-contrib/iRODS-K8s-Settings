@@ -13,9 +13,9 @@ A Web application/services to view/modify the *[iRODS-K8s Supervisor](https://gi
 [![BSD License](https://img.shields.io/badge/License-BSD-orange.svg)](https://github.com/irods-contrib/iRODS-K8s-Settings/blob/main/LICENSE)
 
 #### Components and versions.
-[![Python](https://img.shields.io/badge/Python-3.12.3-orange)](https://github.com/python/cpython)
-[![Linting Pylint](https://img.shields.io/badge/Pylint-%203.1.0-yellow)](https://github.com/PyCQA/pylint)
-[![Pytest](https://img.shields.io/badge/Pytest-%208.2.0-blue)](https://github.com/pytest-dev/pytest)
+[![Python](https://img.shields.io/badge/Python-3.12.5-orange)](https://github.com/python/cpython)
+[![Linting Pylint](https://img.shields.io/badge/Pylint-%203.2.6-yellow)](https://github.com/PyCQA/pylint)
+[![Pytest](https://img.shields.io/badge/Pytest-%208.3.2-blue)](https://github.com/pytest-dev/pytest)
 
 #### Build status.
 [![PyLint the codebase](https://github.com/irods-contrib/iRODS-K8s-Settings/actions/workflows/pylint.yml/badge.svg)](https://github.com/irods-contrib/iRODS-K8s-Settings/actions/workflows/pylint.yml)
