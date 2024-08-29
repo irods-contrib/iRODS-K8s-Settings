@@ -157,6 +157,7 @@ class NextJobTypeName(str, Enum):
     CORE_CONSUMER_JOB = 'core-consumer-job'
     CORE_FORENSICS_JOB = 'core-forensics-job'
     CORE_FINAL_STAGING_JOB = 'core-final-staging-job'
+    COMPLETE = 'complete'
 
 
 class RunStatus(str, Enum):
