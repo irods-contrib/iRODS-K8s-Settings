@@ -4,7 +4,7 @@
 
 # This Dockerfile is used to build THE iRODS-K8s Settings python image
 
-FROM python:3.12.5-slim
+FROM python:3.12.6-slim
 
 # update the image base
 RUN apt-get update && apt-get -y upgrade
